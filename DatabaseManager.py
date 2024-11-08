@@ -123,15 +123,23 @@ class DatabaseManager:
     def bulk_insert_coupon_codes(self, coupon_codes: List[CouponCode]) -> None:
         """
         Bulk insert or update coupon codes in the coupon_codes collection
-        If a coupon code exists, update its expiry
+        If a coupon code exists, update its updated_at
         """
+        if len(coupon_codes) == 0:
+            Logger.warn("No coupon codes to insert")
+            return
         try:
             operations = []
             for coupon in coupon_codes:
                 operations.append(
                     UpdateOne(
                         {"code": coupon.code},
-                        {"$set": coupon.to_dict()},
+                        {"$set": {
+                            "code": coupon.code,
+                            "created_at": coupon.created_at,
+                            "updated_at": datetime.utcnow().isoformat(),
+                            "used": coupon.used
+                        }},
                         upsert=True
                     )
                 )
@@ -143,28 +151,65 @@ class DatabaseManager:
             Logger.error("Failed to bulk insert/update coupon codes", e)
             raise
 
-    def get_valid_coupon_codes(self) -> List[CouponCode]:
+    def get_unused_coupon_codes(self, x: int) -> List[CouponCode]:
         """
-        Return all coupon codes that are not expired
+        Return x unused coupon codes sorted by created_at (oldest first)
         """
         try:
-            current_time = datetime.utcnow().isoformat()
             cursor = self.db[self.coupon_codes_collection].find(
-                {"expiry": {"$gt": current_time}}
-            )
+                {"used": False},
+                projection={"_id": 0},
+                sort=[("created_at", 1)]
+            ).limit(x)
 
-            valid_coupons = []
+            unused_coupons = []
             for doc in cursor:
-                valid_coupons.append(CouponCode(
+                unused_coupons.append(CouponCode(
                     code=doc['code'],
-                    expiry=doc['expiry'],
-                    inserted_at=doc['inserted_at']
+                    created_at=doc['created_at'],
+                    updated_at=doc['updated_at'],
+                    used=doc['used']
                 ))
 
-            Logger.info(f"Retrieved {len(valid_coupons)} valid & unique coupon codes")
-            return valid_coupons
+            # mark the coupon codes as used
+            self.mark_coupon_codes_as_used(unused_coupons)
+
+            Logger.info(f"Retrieved {len(unused_coupons)} unused coupon codes")
+            return unused_coupons
         except PyMongoError as e:
-            Logger.error("Failed to fetch valid coupon codes", e)
+            Logger.error("Failed to fetch unused coupon codes", e)
+            raise
+
+    def mark_coupon_codes_as_used(self, coupon_codes: List[CouponCode]) -> None:
+        """
+        Mark a list of coupon codes as used in the database
+        """
+        if len(coupon_codes) == 0:
+            Logger.warn("No coupon codes to mark as used")
+            return
+        try:
+            operations = [
+                UpdateOne(
+                    {"code": coupon.code},
+                    {"$set": {"used": True, "updated_at": datetime.utcnow().isoformat()}}
+                )
+                for coupon in coupon_codes
+            ]
+            result = self.db[self.coupon_codes_collection].bulk_write(operations)
+            Logger.info(f"Marked {result.modified_count} coupon codes as used")
+        except PyMongoError as e:
+            Logger.error("Failed to mark coupon codes as used", e)
+            raise
+
+    def get_unused_coupon_codes_count(self) -> int:
+        """
+        Return the count of un-used coupon codes
+        """
+        try:
+            unused_count = self.db[self.coupon_codes_collection].count_documents({"used": False})
+            return unused_count
+        except PyMongoError as e:
+            Logger.error("Failed to get coupon codes count", e)
             raise
 
     def close(self):

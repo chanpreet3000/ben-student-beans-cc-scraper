@@ -1,7 +1,5 @@
 import asyncio
 import aiohttp
-from datetime import datetime
-import pytz
 
 from DatabaseManager import DatabaseManager
 from Logger import Logger
@@ -65,12 +63,7 @@ class CouponCodeScraper:
                 response.raise_for_status()
                 data = await response.json()
                 code = str(data['data']['createIssuance']['issuance']['code']['code'])
-                expiry_date = data['data']['createIssuance']['issuance']['code']['endDate']
-
-                # Convert expiry_date to UTC ISO format
-                expiry_utc = datetime.fromisoformat(expiry_date.replace('Z', '+00:00')).astimezone(pytz.UTC).isoformat()
-
-                coupon_code = CouponCode(code, expiry_utc)
+                coupon_code = CouponCode(code)
                 Logger.info(f"Generated coupon code: {code}", coupon_code.to_dict())
                 return coupon_code
 

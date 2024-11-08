@@ -2,16 +2,18 @@ from datetime import datetime
 
 
 class CouponCode:
-    def __init__(self, code: str, expiry: str, inserted_at: str = None):
+    def __init__(self, code: str, created_at: str = None, updated_at: str = None, used: bool = False):
         self.code = code
-        self.expiry = expiry
-        self.inserted_at = inserted_at or datetime.utcnow().isoformat()
+        self.created_at = created_at or datetime.utcnow().isoformat()
+        self.updated_at = updated_at or self.created_at
+        self.used = used
 
     def to_dict(self):
         return {
             'code': self.code,
-            'expiry': self.expiry,
-            'inserted_at': self.inserted_at
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'used': self.used
         }
 
     def __str__(self):

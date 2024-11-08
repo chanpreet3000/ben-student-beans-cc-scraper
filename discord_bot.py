@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 import discord
 from discord import app_commands
@@ -129,46 +128,61 @@ async def list_channels(interaction: discord.Interaction):
     await interaction.followup.send(embed=embed)
 
 
-@client.tree.command(name="sb-list-codes", description="Show all unique & unexpired coupon codes")
-async def list_codes(interaction: discord.Interaction):
-    Logger.info("Received list codes request")
+@client.tree.command(name="sb-get-unused-coupon-codes", description="Get a list of unused coupon codes")
+async def get_unused_coupon_codes(interaction: discord.Interaction, total_codes: int):
+    Logger.info("Received request to get unused coupon codes")
     await interaction.response.defer(thinking=True)
 
     try:
-        codes = client.db.get_valid_coupon_codes()
+        codes = client.db.get_unused_coupon_codes(total_codes)
         if codes:
-            # Sort codes by expiry date
-            sorted_codes = sorted(codes, key=lambda x: x.expiry)
+            # Prepare the coupon codes to be sent in DM
+            coupon_codes_text = '\n'.join([code.code for code in codes])
+            coupon_codes_length = len(codes)
+
+            # Send the coupon codes in a DM
+            await interaction.user.send(
+                f"Here are **{coupon_codes_length}** unused coupon codes:\n```\n{coupon_codes_text}\n```")
 
             embed = discord.Embed(
-                title="🎟️ Valid Coupon Codes",
-                description="Here are the unique and unexpired coupon codes:",
+                title="🎟️ Unused Coupon Codes",
+                description=f"I've sent you {coupon_codes_length} unused coupon codes via DM.",
                 color=0x00ccff
             )
-
-            for code in sorted_codes:
-                # Convert expiry to human-readable format
-                expiry_dt = datetime.fromisoformat(code.expiry)
-                expiry_str = expiry_dt.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-                embed.add_field(
-                    name=f"Code: {code.code}",
-                    value=f"Expires: {expiry_str} (UTC)",
-                    inline=False
-                )
-
-            embed.set_footer(text="All times are in UTC")
         else:
             embed = discord.Embed(
-                title="🎟️ Valid Coupon Codes",
-                description="There are no valid coupon codes at the moment.",
+                title="🎟️ Unused Coupon Codes",
+                description="There are no unused coupon codes available at the moment.",
                 color=0xffcc00
             )
     except Exception as e:
-        Logger.error('Error listing codes:', e)
+        Logger.error('Error getting unused coupon codes:', e)
         embed = discord.Embed(
             title="❌ Error",
-            description=f"An error occurred while fetching the coupon codes list.\n{str(e)}",
+            description=f"An error occurred while fetching the unused coupon codes.\n{str(e)}",
+            color=0xff0000
+        )
+
+    await interaction.followup.send(embed=embed)
+
+
+@client.tree.command(name="sb-coupon-codes-count", description="Get the count of unused coupon codes")
+async def coupon_codes_count(interaction: discord.Interaction):
+    Logger.info("Received coupon codes count request")
+    await interaction.response.defer(thinking=True)
+
+    try:
+        unused_count = client.db.get_unused_coupon_codes_count()
+        embed = discord.Embed(
+            title="🎟️ Coupon Codes Count",
+            description=f"**Unused Coupon Codes:** {unused_count}",
+            color=0x00ccff
+        )
+    except Exception as e:
+        Logger.error('Error getting coupon codes count:', e)
+        embed = discord.Embed(
+            title="❌ Error",
+            description=f"An error occurred while getting the coupon codes count.\n{str(e)}",
             color=0xff0000
         )
 
@@ -186,7 +200,7 @@ async def cron_job():
 @client.event
 async def on_ready():
     Logger.info(f"Bot is ready and logged in as {client.user}")
-    cron_job.start()
+    # cron_job.start()
 
 
 def run_bot():
