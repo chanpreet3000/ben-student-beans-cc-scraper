@@ -120,33 +120,46 @@ class DatabaseManager:
             Logger.error("Failed to fetch notification channels", e)
             raise
 
+    def insert_or_update_coupon_code(self, coupon: CouponCode) -> None:
+        """
+        Insert a new coupon code or update an existing one
+        """
+        try:
+            current_timestamp = datetime.utcnow().isoformat()
+            # Check if the coupon code already exists
+            existing_code = self.db[self.coupon_codes_collection].find_one({"code": coupon.code})
+            if existing_code:
+                # Update the existing coupon code
+                self.db[self.coupon_codes_collection].update_one(
+                    {"code": coupon.code},
+                    {"$set": {
+                        "updated_at": current_timestamp,
+                    }}
+                )
+                Logger.info(f"Updated coupon code: {coupon.code}")
+            else:
+                # Insert a new coupon code
+                self.db[self.coupon_codes_collection].insert_one({
+                    "code": coupon.code,
+                    "created_at": current_timestamp,
+                    "updated_at": current_timestamp,
+                    "used": False
+                })
+                Logger.info(f"Inserted new coupon code: {coupon.code}")
+        except PyMongoError as e:
+            Logger.error(f"Error inserting/updating coupon code: {coupon.code}", e)
+            raise
+
     def bulk_insert_coupon_codes(self, coupon_codes: List[CouponCode]) -> None:
         """
-        Bulk insert or update coupon codes in the coupon_codes collection
-        If a coupon code exists, update its updated_at
+        Serially insert or update coupon codes in the coupon_codes collection
         """
         if len(coupon_codes) == 0:
             Logger.warn("No coupon codes to insert")
             return
         try:
-            operations = []
             for coupon in coupon_codes:
-                operations.append(
-                    UpdateOne(
-                        {"code": coupon.code},
-                        {"$set": {
-                            "code": coupon.code,
-                            "created_at": coupon.created_at,
-                            "updated_at": datetime.utcnow().isoformat(),
-                            "used": coupon.used
-                        }},
-                        upsert=True
-                    )
-                )
-
-            result = self.db[self.coupon_codes_collection].bulk_write(operations)
-            Logger.info(
-                f"Bulk insert/update completed. Inserted: {result.upserted_count}, Modified: {result.modified_count}")
+                self.insert_or_update_coupon_code(coupon)
         except PyMongoError as e:
             Logger.error("Failed to bulk insert/update coupon codes", e)
             raise
