@@ -1,7 +1,5 @@
 logs
 auth_tokens*.txt
-used.txt
-studentbeans.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

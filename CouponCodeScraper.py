@@ -1,11 +1,21 @@
 import asyncio
 import aiohttp
+import random
 from typing import List
 
 from DatabaseManager import DatabaseManager
 from Logger import Logger
 from models import CouponCode
 from ProxyManager import ProxyManager
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) Gecko/20100101 Firefox/109.0",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64) Gecko/20100101 Firefox/110.0",
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.1587.57 Safari/537.36 Edg/110.0.1587.57",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.1661.54 Safari/537.36 Edg/111.0.1661.54"
+]
 
 
 class CouponCodeScraper:
@@ -50,7 +60,7 @@ class CouponCodeScraper:
                     'sec-fetch-dest': 'empty',
                     'sec-fetch-mode': 'cors',
                     'sec-fetch-site': 'same-site',
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+                    'user-agent': random.choice(USER_AGENTS),
                 }
                 json_data = {
                     'operationName': 'createIssuanceMutation',
