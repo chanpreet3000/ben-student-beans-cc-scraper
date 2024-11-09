@@ -212,7 +212,7 @@ async def cron_job():
 @client.event
 async def on_ready():
     Logger.info(f"Bot is ready and logged in as {client.user}")
-    # cron_job.start()
+    cron_job.start()
 
 
 def run_bot():
