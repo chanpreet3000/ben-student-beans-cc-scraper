@@ -194,17 +194,18 @@ async def coupon_codes_count(interaction: discord.Interaction):
 async def cron_job():
     Logger.info("Starting scheduled stock check")
     scraper = CouponCodeScraper()
-    await scraper.start()
+    inserted, updated = await scraper.start()
     unused_count = client.db.get_unused_coupon_codes_count()
     embed = discord.Embed(
         title="Scheduled Stock Check Complete",
         color=discord.Color.green()
     )
+    embed.add_field(name="New Coupon Codes Inserted", value=str(inserted), inline=False)
+    embed.add_field(name="Existing Coupon Codes Updated", value=str(updated), inline=False)
     embed.add_field(name="Total Unused Coupon Codes", value=str(unused_count), inline=False)
     embed.set_footer(text=f"Completed on {get_current_time()} (UK Time)")
     await notify_users(
         client=client,
-        message=f"Stock check completed",
         embed=embed
     )
     Logger.info(f"Scheduled stock check completed. Next run in {cron_interval} seconds.")

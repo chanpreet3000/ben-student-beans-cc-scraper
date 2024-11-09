@@ -24,7 +24,7 @@ def get_current_time():
     return datetime.now(uk_tz).strftime('%d %B %Y, %I:%M:%S %p %Z')
 
 
-async def notify_users(client: discord.Client, message: str, embed: discord.Embed = None):
+async def notify_users(client: discord.Client, message: str = None, embed: discord.Embed = None):
     try:
         Logger.info("Sending notifications to all channels")
         db_manager = DatabaseManager()
@@ -45,7 +45,11 @@ async def notify_users(client: discord.Client, message: str, embed: discord.Embe
                     continue
 
                 Logger.info(f"Sending notification to channel {channel_id}")
-                Logger.debug(f"Message content: {message[:100]}...")
+
+                if message:
+                    Logger.debug(f"Message content: {message[:100]}...")
+                else:
+                    Logger.warn("No message content provided")
 
                 await channel.send(
                     content=message,

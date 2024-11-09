@@ -1,7 +1,7 @@
 import asyncio
 import aiohttp
 import random
-from typing import List
+from typing import List, Tuple
 
 from DatabaseManager import DatabaseManager
 from Logger import Logger
@@ -105,8 +105,9 @@ class CouponCodeScraper:
 
         return all_coupons
 
-    async def start(self):
+    async def start(self) -> Tuple[int, int]:
         await self.initialize()
         coupons = await self.generate_all_coupons()
         Logger.info(f"Successfully fetched {len(coupons)} coupon codes out of {len(self.bearers)}")
-        self.db.bulk_insert_coupon_codes(coupons)
+        inserted, updated = self.db.bulk_insert_coupon_codes(coupons)
+        return inserted, updated

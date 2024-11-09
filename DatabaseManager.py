@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.database import Database as MongoDatabase
@@ -120,7 +120,7 @@ class DatabaseManager:
             Logger.error("Failed to fetch notification channels", e)
             raise
 
-    def insert_or_update_coupon_code(self, coupon: CouponCode) -> None:
+    def insert_or_update_coupon_code(self, coupon: CouponCode) -> Tuple[int, int]:
         """
         Insert a new coupon code or update an existing one
         """
@@ -137,6 +137,7 @@ class DatabaseManager:
                     }}
                 )
                 Logger.info(f"Updated coupon code: {coupon.code}")
+                return 0, 1
             else:
                 # Insert a new coupon code
                 self.db[self.coupon_codes_collection].insert_one({
@@ -146,20 +147,27 @@ class DatabaseManager:
                     "used": False
                 })
                 Logger.info(f"Inserted new coupon code: {coupon.code}")
+                return 1, 0
         except PyMongoError as e:
             Logger.error(f"Error inserting/updating coupon code: {coupon.code}", e)
             raise
 
-    def bulk_insert_coupon_codes(self, coupon_codes: List[CouponCode]) -> None:
+    def bulk_insert_coupon_codes(self, coupon_codes: List[CouponCode]) -> Tuple[int, int]:
         """
         Serially insert or update coupon codes in the coupon_codes collection
         """
+        inserted, updated = 0, 0
         if len(coupon_codes) == 0:
             Logger.warn("No coupon codes to insert")
-            return
+            return inserted, updated
         try:
             for coupon in coupon_codes:
-                self.insert_or_update_coupon_code(coupon)
+                i, u = self.insert_or_update_coupon_code(coupon)
+                inserted += i
+                updated += u
+
+            Logger.info(f"Inserted {inserted} new coupon codes, updated {updated} existing coupon codes")
+            return inserted, updated
         except PyMongoError as e:
             Logger.error("Failed to bulk insert/update coupon codes", e)
             raise
