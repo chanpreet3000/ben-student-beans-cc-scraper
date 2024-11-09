@@ -32,7 +32,6 @@ client = Bot()
 
 
 @client.tree.command(name="sb-add-channel", description="Add a notification channel")
-@app_commands.checks.has_permissions(administrator=True)
 async def add_channel(interaction: discord.Interaction, channel: discord.TextChannel):
     Logger.info(f"Received add channel request for channel ID: {channel.id}")
     await interaction.response.defer(thinking=True)
@@ -62,7 +61,6 @@ async def add_channel(interaction: discord.Interaction, channel: discord.TextCha
 
 
 @client.tree.command(name="sb-remove-channel", description="Remove a notification channel")
-@app_commands.checks.has_permissions(administrator=True)
 async def remove_channel(interaction: discord.Interaction, channel: discord.TextChannel):
     Logger.info(f"Received remove channel request for channel ID: {channel.id}")
     await interaction.response.defer(thinking=True)
@@ -214,7 +212,7 @@ async def cron_job():
 @client.event
 async def on_ready():
     Logger.info(f"Bot is ready and logged in as {client.user}")
-    cron_job.start()
+    # cron_job.start()
 
 
 def run_bot():

@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b44a865e-6e89-42ab-a6f9-766a17573584" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discord_bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/discord_bot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,7 +85,7 @@
       <option name="presentableId" value="Default" />
       <updated>1731076571035</updated>
       <workItem from="1731076572182" duration="4720000" />
-      <workItem from="1731136852936" duration="726000" />
+      <workItem from="1731136852936" duration="2814000" />
     </task>
     <servers />
   </component>
@@ -92,6 +93,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ben_student_beans_cc_scraper$main.coverage" NAME="main Coverage Results" MODIFIED="1731137085387" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/ben_student_beans_cc_scraper$main.coverage" NAME="main Coverage Results" MODIFIED="1731149384168" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
